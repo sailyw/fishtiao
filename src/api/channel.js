@@ -12,7 +12,7 @@ export const getAllChannels = () => {
   })
 }
 /**
- * 获取所有频道列表
+ * 添加用户频道
  */
 export const addUserChannel = data => {
   return request({
