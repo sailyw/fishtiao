@@ -59,8 +59,12 @@
       get-container="body"
       :style="{height: '100%'}"
     >
-      <!-- 在父组件中把 channels 传递给频道编辑组件 -->
-      <channel-edit :user-channels="channels"/>
+      <!-- 在父组件中把 channels 传递给频道编辑组件,模板中的 $event 表示事件参数 -->
+      <channel-edit
+        :user-channels="channels"
+        :active="active"
+        @close="isChannelEditShow = false"
+        @update-active="active = $event"/>
     </van-popup>
     <!-- /频道编辑 -->
   </div>
@@ -70,6 +74,8 @@
 import { getUserChannels } from '@/api/user'
 import ArticleList from './components/article-list'
 import ChannelEdit from './components/channel-edit'
+import { mapState } from 'vuex'
+import { getItem } from '@/utils/storage'
 export default {
   name: 'HomeIndex',
   components: {
@@ -84,18 +90,50 @@ export default {
       isChannelEditShow: false// 控制弹层的显示和隐藏
     }
   },
-  computed: {},
-  watch: {},
+  computed: {
+    ...mapState(['user'])
+  },
+  watch: {
+    user () {
+      this.active = 0
+      this.loadChannels()
+    }
+  },
   created () {
     this.loadChannels()
   },
   mounted () {},
   methods: {
     async loadChannels () {
+      let channels = []
+      if (this.user) {
+        // 已登录，请求获取线上的用户频道列表数据
+        const { data } = await getUserChannels()
+        channels = data.data.channels
+      } else {
+        // 没有登录，判断是否有本地存储的频道列表数据
+        const localChannels = getItem('user-channels')
+
+        // 如果有本地存储的频道列表则使用
+        if (localChannels) {
+          channels = localChannels
+        } else {
+          // 用户没有登录，也没有本地存储的频道，那就请求获取默认推荐的频道列表
+          const { data } = await getUserChannels()
+          channels = data.data.channels
+        }
+      }
+
+      // 把处理好的数据放到 data 中以供模板使用
+      this.channels = channels
       // 请求获取频道数据
-      const { data } = await getUserChannels()
-      this.channels = data.data.channels
+      // const { data } = await getUserChannels()
+      // this.channels = data.data.channels
     }
+
+    // onUpdateActive (index) {
+    //   this.active = index
+    // }
   }
 }
 </script>
