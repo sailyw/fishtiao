@@ -46,7 +46,7 @@ import { mapState } from 'vuex'
 export default {
   name: 'SearchIndex',
   components: {
-    SearchHistory,
+    SearchHistory, // 添加一个数据用来存储历史记录
     SearchSuggestion,
     SearchResult
   },
